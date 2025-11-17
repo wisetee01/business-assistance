@@ -28,7 +28,7 @@ app.mount("/static/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB in bytes
+MAX_FILE_SIZE = 5 * 1024 * 1024  
 ALLOWED_TYPES = ["image/jpeg", "image/png"]
 
 
@@ -66,14 +66,13 @@ async def upload_proof(request: Request, file: UploadFile = File(...), message: 
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"File size too large. Must be less than {MAX_FILE_SIZE / 1024 / 1024:.0f} MB."
         )
-    await file.seek(0) # Rewind the UploadFile stream for saving
-    # --- END VALIDATION ---
+    await file.seek(0) 
 
     unique_filename = f"{uuid.uuid4()}_{file.filename}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
     
     try:
-        # Save the validated file content locally
+        
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer) 
         

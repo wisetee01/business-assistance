@@ -6,34 +6,55 @@
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; background: #f9f9f9; }
     .container { max-width: 420px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-    .header { background: #4a3559; color: white; padding: 16px; text-align: center; font-weight: bold; }
+    
+  
+    .header { background: linear-gradient(to right, #007bff, #0056b3); color: white; padding: 16px; display: flex; align-items: center; }
+    .profile-pic { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 2px solid white; }
+    .header-info { display: flex; flex-direction: column; }
+    .header-name { font-weight: bold; font-size: 16px; }
+    .header-status { font-size: 12px; opacity: 0.8; }
+
     #chat { height: 420px; overflow-y: auto; padding: 16px; background: #fff; }
     .msg { margin: 8px 0; padding: 10px; border-radius: 12px; max-width: 80%; }
-    .user { background: #323233; color: white; margin-left: auto; text-align: right; }
-    .bot { background: #e9ecef; color: #333; }
-    .input-area { display: flex; padding: 12px; border-top: 1px solid #eee; }
-    input[type="text"] { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px 0 0 8px; font-size: 16px; }
-    button { padding: 12px 16px; border: none; background: rgb(29, 31, 34); color: white; cursor: pointer; }
-    button:hover { background: #565c63; }
     
-    #file-upload-btn { background: #b7b7b7; border-radius: 0 8px 8px 0; margin-left: -1px; }
-    #file-upload-btn:hover { background: #b0b4b1; }
-    #file-input { display: none; } /* Hide the actual file input button */
-    label[for="file-input"] { padding: 12px 16px; background: #b6b7b6; color: white; border-radius: 0 8px 8px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    label[for="file-input"]:hover { background: #7f8080; }
+    /* Updated bubble colors to match the image */
+    .user { background: #007bff; color: white; margin-left: auto; text-align: right; }
+    .bot { background: #e9ecef; color: #333; }
+
+    .input-area { display: flex; padding: 12px; border-top: 1px solid #eee; align-items: center; }
+    input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-right: 8px; }
+    
+    /* Updated button appearance to use icons/shapes like Tidio */
+    .btn-icon { width: 40px; height: 40px; border: none; background: #007bff; color: white; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-left: 4px; }
+    .btn-icon:hover { background: #0056b3; }
+    
+    #file-input { display: none; }
+    label[for="file-input"] { background: #2f302f; margin-right: 4px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    label[for="file-input"]:hover { background: #218838; }
+
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">Business Assistant</div>
+    <div class="header">
+        
+      
+        <img src="/static/profile.jpg" alt="Profile" class="profile-pic" id="profile-img">
+        <div class="header-info">
+            <span class="header-name">Taiwo Oriyomi</span>
+            <span class="header-status">We're online</span>
+        </div>
+    </div>
     <div id="chat"></div>
     <div class="input-area">
-      <input id="msg" type="text" placeholder="Type your message..." />
-      <button onclick="send()">Send</button>
-      <button onclick="speak()">Speak</button>
+      <input id="msg" type="text" placeholder="Enter your message..." />
       
+      <!-- File Upload Elements -->
       <input type="file" id="file-input" accept="image/*" />
       <label for="file-input" title="Upload Payment Proof">📸</label>
+
+      <button onclick="speak()" class="btn-icon" title="Speak to type">🗣️</button>
+      <button onclick="send()" class="btn-icon" title="Send message">➤</button>
     </div>
   </div>
 
@@ -47,6 +68,7 @@
       div.className = `msg ${sender}`; 
       div.textContent = text; 
       div.innerHTML = div.innerHTML.replace(/\n/g, '<br>');
+
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
     }
@@ -54,22 +76,19 @@
     async function send() {
       const msg = input.value.trim();
       
-
       if (fileInput.files.length > 0) {
           handleFileUpload(msg);
           return;
       }
 
-  
       if (!msg) return;
       addMessage(msg, "user");
       input.value = "";
       
-      
       const res = await fetch("/chat", { 
           method: "POST", 
           body: new URLSearchParams({ message: msg }),
-          headers: {'Content-Type': 'application/x-www-form-urlencoded'} 
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'}
       });
       const data = await res.json();
       addMessage(data.reply, "bot");
@@ -77,31 +96,36 @@
 
     async function handleFileUpload(messageText) {
         const file = fileInput.files[0]; 
+
+       
+        const MAX_SIZE_MB = 5;
+        if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+            addMessage(`Error: File is too large (max ${MAX_SIZE_MB}MB).`, "bot");
+            fileInput.value = '';
+            return;
+        }
+
         addMessage(`Uploading payment proof: ${file.name}...`, "user");
 
-      
         const formData = new FormData();
         formData.append('file', file);
         formData.append('message', messageText || "Payment proof attached."); 
 
-        
         const res = await fetch("/upload-proof", {
             method: "POST",
             body: formData,
         });
-
+        
         const data = await res.json();
         addMessage(data.reply, "bot");
         
-    
         fileInput.value = '';
     }
-
 
     function speak() {
       const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       recognition.onresult = (e) => {
-        input.value = e.results[0][0].transcript;
+        input.value = e.results.transcript;
         send();
       };
       recognition.start();

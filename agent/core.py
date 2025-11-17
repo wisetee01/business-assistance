@@ -13,7 +13,7 @@ gemini_client = genai.Client(api_key=settings.gemini_api_key)
 
 _part_from_text = Part.from_text
 
-COMPLAINT_CONTACT_INFO = "For complaints --- contact at email [REDACTED] number 08012356678"
+COMPLAINT_CONTACT_INFO = "For complaints --- contact at email wisetee01@gmail.com OR number 08012356678"
 
 def get_ai_response(messages: list[dict], model_name="gpt-3.5-turbo"):
     """Attempts to get a response from OpenAI, falling back to Gemini if necessary."""
@@ -54,7 +54,7 @@ def process_user_input(user_input_data: dict, source: str = "Direct") -> str:
     system_prompt = f"""
 You are a professional business assistant taking orders. Collect all details (item, price, address, customer name, email, phone number, and payment method).
 Available payment methods are PayPal, Paystack, and Bank Transfer.
-Once a method is chosen, provide specific details (e.g., a link or account number).
+Once a method is chosen, provide specific details (e.g., a link or account number . if its bank transfer bank details in .env should be detect and show it to customer).
 After details are provided, the user will upload a payment proof via the website interface.
 CRITICAL RULE: Immediately after the user uploads their proof (which the system handles in the backend), you must provide the final confirmation message with the order number. Do not ask any more questions.
 """
