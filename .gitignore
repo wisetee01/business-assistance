@@ -1,0 +1,15 @@
+# Environment files
+.env
+.venv/
+env/
+# Google Cloud credentials file (add the exact name you used)
+gcs_credentials.json 
+
+# Byte-code files
+__pycache__/
+*.pyc
+
+# IDE/Editor files
+.idea/
+.vscode/
+

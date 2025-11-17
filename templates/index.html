@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Business Assistant</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f9f9f9; }
+    .container { max-width: 420px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: #4a3559; color: white; padding: 16px; text-align: center; font-weight: bold; }
+    #chat { height: 420px; overflow-y: auto; padding: 16px; background: #fff; }
+    .msg { margin: 8px 0; padding: 10px; border-radius: 12px; max-width: 80%; }
+    .user { background: #323233; color: white; margin-left: auto; text-align: right; }
+    .bot { background: #e9ecef; color: #333; }
+    .input-area { display: flex; padding: 12px; border-top: 1px solid #eee; }
+    input[type="text"] { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px 0 0 8px; font-size: 16px; }
+    button { padding: 12px 16px; border: none; background: rgb(29, 31, 34); color: white; cursor: pointer; }
+    button:hover { background: #565c63; }
+    
+    #file-upload-btn { background: #b7b7b7; border-radius: 0 8px 8px 0; margin-left: -1px; }
+    #file-upload-btn:hover { background: #b0b4b1; }
+    #file-input { display: none; } /* Hide the actual file input button */
+    label[for="file-input"] { padding: 12px 16px; background: #b6b7b6; color: white; border-radius: 0 8px 8px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    label[for="file-input"]:hover { background: #7f8080; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Business Assistant</div>
+    <div id="chat"></div>
+    <div class="input-area">
+      <input id="msg" type="text" placeholder="Type your message..." />
+      <button onclick="send()">Send</button>
+      <button onclick="speak()">Speak</button>
+      
+      <input type="file" id="file-input" accept="image/*" />
+      <label for="file-input" title="Upload Payment Proof">📸</label>
+    </div>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("msg");
+    const fileInput = document.getElementById("file-input");
+
+    function addMessage(text, sender) {
+      const div = document.createElement("div");
+      div.className = `msg ${sender}`; 
+      div.textContent = text; 
+      div.innerHTML = div.innerHTML.replace(/\n/g, '<br>');
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function send() {
+      const msg = input.value.trim();
+      
+
+      if (fileInput.files.length > 0) {
+          handleFileUpload(msg);
+          return;
+      }
+
+  
+      if (!msg) return;
+      addMessage(msg, "user");
+      input.value = "";
+      
+      
+      const res = await fetch("/chat", { 
+          method: "POST", 
+          body: new URLSearchParams({ message: msg }),
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'} 
+      });
+      const data = await res.json();
+      addMessage(data.reply, "bot");
+    }
+
+    async function handleFileUpload(messageText) {
+        const file = fileInput.files[0]; 
+        addMessage(`Uploading payment proof: ${file.name}...`, "user");
+
+      
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('message', messageText || "Payment proof attached."); 
+
+        
+        const res = await fetch("/upload-proof", {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await res.json();
+        addMessage(data.reply, "bot");
+        
+    
+        fileInput.value = '';
+    }
+
+
+    function speak() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.onresult = (e) => {
+        input.value = e.results[0][0].transcript;
+        send();
+      };
+      recognition.start();
+    }
+
+    input.addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
+
+    window.onload = () => {
+        addMessage("Hi welcome to Taiwo Oriyomi Full-Stack developer & Ai Engineer, how can I help you?", "bot");
+    };
+  </script>
+</body>
+</html>
