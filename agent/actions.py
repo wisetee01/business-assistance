@@ -35,7 +35,7 @@ else:
 
 if settings.paystack_secret_key:
     
-    from paystackapi import Paystack
+    
     Paystack(secret_key=settings.paystack_secret_key)
     print("Paystack functionality enabled.")
 else:
