@@ -81,9 +81,8 @@ def send_email_alert(order: dict, source: str, proof_url: str = None) -> None:
 
 def create_stripe_link(amount: int, order_number: str) -> str:
     """Generate Stripe payment URL."""
-
-     if stripe.api_key is None:
-        return None
+    if stripe.api_key is None:
+        return None  
 
     amount_cents = int(amount * 100)
     session = stripe.checkout.sessions.create(
@@ -106,8 +105,7 @@ def create_stripe_link(amount: int, order_number: str) -> str:
 
 def create_paystack_link(amount: int, email: str, order_number: str) -> str:
     """Generate Paystack payment URL."""
-
-    if not paypalrestsdk.api.Configuration.client_id: 
+   if not paypalrestsdk.api.Configuration.client_id: 
          print("PayPal not configured.")
          return None
 
@@ -131,8 +129,7 @@ def create_paystack_link(amount: int, email: str, order_number: str) -> str:
 
 def create_paypal_link(amount: int, order_number: str) -> str:
     """Generate PayPal payment URL."""
-
-    if not paypalrestsdk.api.Configuration.client_id: 
+   if not paypalrestsdk.api.Configuration.client_id: 
          print("PayPal not configured.")
          return None
 
