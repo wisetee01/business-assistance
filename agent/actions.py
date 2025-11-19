@@ -106,10 +106,10 @@ def create_stripe_link(amount: int, order_number: str) -> str:
 def create_paystack_link(amount: int, email: str, order_number: str) -> str:
     """Generate Paystack payment URL."""
    if not paypalrestsdk.api.Configuration.client_id: 
-         print("PayPal not configured.")
-         return None
+        print("PayPal not configured.")
+        return None
 
-         Paystack(secret_key=settings.paystack_secret_key)
+        Paystack(secret_key=settings.paystack_secret_key)
 
 
     amount_kobo = int(amount * 100)
@@ -130,8 +130,8 @@ def create_paystack_link(amount: int, email: str, order_number: str) -> str:
 def create_paypal_link(amount: int, order_number: str) -> str:
     """Generate PayPal payment URL."""
    if not paypalrestsdk.api.Configuration.client_id: 
-         print("PayPal not configured.")
-         return None
+        print("PayPal not configured.")
+        return None
 
     amount_str = f"{amount:.2f}"
     payment = paypalrestsdk.Payment({
