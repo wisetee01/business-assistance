@@ -6,7 +6,6 @@ import sendgrid
 from sendgrid.helpers.mail import Mail
 import paypalrestsdk
 from paystackapi.transaction import Transaction
-from paystackapi import Paystack
 
 client = MongoClient(settings.mongodb_uri)
 db = client[settings.db_name]
@@ -30,7 +29,17 @@ if settings.paypal_client_id and settings.paypal_secret:
     print("PayPal functionality enabled.")
 else:
     print("Warning: PayPal credentials missing. PayPal functionality disabled.")
-    paypalrestsdk.configure({"mode": "sandbox", "client_id": None, "client_secret": None}) # Configure with None
+    paypalrestsdk.configure({"mode": "sandbox", "client_id": None, "client_secret": None}) 
+
+
+
+if settings.paystack_secret_key:
+    
+    from paystackapi import Paystack
+    Paystack(secret_key=settings.paystack_secret_key)
+    print("Paystack functionality enabled.")
+else:
+    print("Warning: Paystack secret key is missing. Paystack functionality disabled.")
 
 # SendGrid Initialization
 sg = None
