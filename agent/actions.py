@@ -5,24 +5,49 @@ import stripe
 import sendgrid
 from sendgrid.helpers.mail import Mail
 import paypalrestsdk
+from paystackapi.transaction import Transaction
+from paystackapi import Paystack
 
 client = MongoClient(settings.mongodb_uri)
 db = client[settings.db_name]
 orders_collection = db[settings.orders_collection]
 
-stripe.api_key = settings.stripe_secret_key
+# Stripe Initialization
+if settings.stripe_secret_key:
+    stripe.api_key = settings.stripe_secret_key
+    print("Stripe functionality enabled.")
+else:
+    print("Warning: Stripe API key is missing. Stripe functionality disabled.")
+    stripe.api_key = None # Explicitly set to None for clearer handling
 
-paypalrestsdk.configure({
-    "mode": "sandbox",  # Change to "live" when production is ready
-    "client_id": settings.paypal_client_id,
-    "client_secret": settings.paypal_secret
-})
+# PayPal Initialization
+if settings.paypal_client_id and settings.paypal_secret:
+    paypalrestsdk.configure({
+        "mode": "sandbox",  # Change to "live" when production is ready
+        "client_id": settings.paypal_client_id,
+        "client_secret": settings.paypal_secret
+    })
+    print("PayPal functionality enabled.")
+else:
+    print("Warning: PayPal credentials missing. PayPal functionality disabled.")
+    paypalrestsdk.configure({"mode": "sandbox", "client_id": None, "client_secret": None}) # Configure with None
 
-sg = sendgrid.SendGridAPIClient(settings.sendgrid_api_key)
+# SendGrid Initialization
+sg = None
+if settings.sendgrid_api_key:
+    sg = sendgrid.SendGridAPIClient(settings.sendgrid_api_key)
+    print("SendGrid functionality enabled.")
+else:
+    print("Warning: SendGrid API key is missing. Email alerts disabled.")
 
 
 def send_email_alert(order: dict, source: str, proof_url: str = None) -> None:
     """Send new order alert to business owner, including proof URL."""
+
+    if sg is None:
+        print("Email skipped: SendGrid client not configured.")
+        return
+
     html_content = f"""
     <h3>New Order!</h3>
     <p><strong>Order Number:</strong> {order['order_number']}</p>
@@ -56,6 +81,10 @@ def send_email_alert(order: dict, source: str, proof_url: str = None) -> None:
 
 def create_stripe_link(amount: int, order_number: str) -> str:
     """Generate Stripe payment URL."""
+
+     if stripe.api_key is None:
+        return None
+
     amount_cents = int(amount * 100)
     session = stripe.checkout.sessions.create(
         payment_method_types=['card'],
@@ -77,6 +106,14 @@ def create_stripe_link(amount: int, order_number: str) -> str:
 
 def create_paystack_link(amount: int, email: str, order_number: str) -> str:
     """Generate Paystack payment URL."""
+
+    if not paypalrestsdk.api.Configuration.client_id: 
+         print("PayPal not configured.")
+         return None
+
+         Paystack(secret_key=settings.paystack_secret_key)
+
+
     amount_kobo = int(amount * 100)
     try:
         
@@ -94,6 +131,11 @@ def create_paystack_link(amount: int, email: str, order_number: str) -> str:
 
 def create_paypal_link(amount: int, order_number: str) -> str:
     """Generate PayPal payment URL."""
+
+    if not paypalrestsdk.api.Configuration.client_id: 
+         print("PayPal not configured.")
+         return None
+
     amount_str = f"{amount:.2f}"
     payment = paypalrestsdk.Payment({
         "intent": "sale",
