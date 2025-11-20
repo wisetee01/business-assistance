@@ -6,7 +6,6 @@ import sendgrid
 from sendgrid.helpers.mail import Mail
 import paypalrestsdk
 from paystackapi.transaction import Transaction
-from paystackapi import Paystack 
 
 client = MongoClient(settings.mongodb_uri)
 db = client[settings.db_name]
