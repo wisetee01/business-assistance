@@ -2,7 +2,7 @@
 .env
 .venv/
 env/
-static/
+static
 # Google Cloud credentials file (add the exact name you used)
 gcs_credentials.json 
 
